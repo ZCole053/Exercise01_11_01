@@ -11,7 +11,7 @@
 
 // global variables
 var selectedCity = "Tucson, AZ";
-var weatherReport;
+var weatherReport; //holds response data
 var httpRequest = false; //have an XHR object to use
 
 //function to instatansite XHR object
@@ -21,9 +21,23 @@ function getRequestObject() {
     } catch (requestError) {
         document.querySelector("p.error").innerHTML = "Forecast not supported by your browser.";
         document.querySelector("p.error").style.display = "block";
-        return;
+        return false;
     }
     return httpRequest;
+}
+
+
+//function to process reponse data
+function fillWeather(){
+    //check reponse state for 4 (done) and status 200
+    if(httpRequest.readyState === 4 && httpRequest.status ===200){
+        weatherReport = JSON.parse(httpRequest.responseText);
+    }
+    var days = ["Sunday" , "Monday" ,"Tuesday" ,"Wednesday" , "Thursday" , "Friday" , "Saturday"];
+    var dateValue = new Date(weatherReport.daily.data[0].time);
+    var dateOfWeek = dateValue.getDay();
+    var rows = document.querySelectorAll("section.week table tbody tr");
+    document.querySelector("section.week table caption").innerHTML = selectedCity;
 }
 
 //get weather on load event or click to get selected city
@@ -55,7 +69,10 @@ function getWeather(evt) {
     // clear any open request
     httpRequest.abort();
     // target request to a resource
-    httpRequest.open("get" , "solar.php?" + "lat=" + latitude + "&lng=" + longitude);
+    httpRequest.open("get" , "solar.php?" + "lat=" + latitude + "&lng=" + longitude , true);
+    //send request to server
+    httpRequest.send(null);
+    httpRequest.onreadystatechange = fillWeather;
 }
 
 //retrive location cities from the page 
